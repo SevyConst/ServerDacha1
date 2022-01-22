@@ -13,7 +13,7 @@ public class EventsController {
 
     private int periodSent = 10;
 
-    @PostMapping("/events")
+    @PostMapping("/event")
     public EventsResponse receivingEvents(@RequestBody Events events) {
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
@@ -22,6 +22,7 @@ public class EventsController {
 
             System.out.println("event name: " + event.getNameEvent());
             System.out.println("event id: " + id);
+            System.out.println("device id: " + id);
             System.out.println();
 
             eventsIdsDelivered.add(id);
