@@ -11,6 +11,8 @@ import java.util.List;
 @RestController
 public class EventsController {
 
+
+
     private int periodSent = 10;
 
     @PostMapping("/event")
