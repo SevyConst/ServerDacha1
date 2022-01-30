@@ -3,6 +3,6 @@
 /workspace.xml
 .idea/
 target/
-ibnDoomConfig.properties
+*.properties
 *.sql
 *.db

@@ -13,7 +13,20 @@ public class Application implements ApplicationRunner {
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
 
     public static void main(String[] args) {
-        Logger logger = LoggerFactory.getLogger(Application.class);
+
+        if (!isCorrectArgs(args)) {
+            logger.error("main method: wrong input arguments");
+            return;
+        }
+
+        ForProperties forProperties = new ForProperties();
+        if (!forProperties.load(args[0], logger)) {
+            return;
+        }
+
+
+        Db db = new Db(forProperties.getUrlForDb(), logger);;
+        db.insertEvent("start", System.currentTimeMillis());
 
         SpringApplication.run(Application.class, args);
     }
@@ -21,5 +34,9 @@ public class Application implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         System.out.println("start!");
+    }
+
+    private static boolean isCorrectArgs(String[] args) {
+        return 1 == args.length && args[0].startsWith(ForProperties.ARG_START);
     }
 }

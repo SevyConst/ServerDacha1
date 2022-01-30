@@ -26,7 +26,7 @@ public class Db {
             statement.executeUpdate();
 
         } catch (SQLException e) {
-            logger.error("can't insert start event to sqlite", e);
+            logger.error("can't insert start event to postgresql", e);
         }
     }
 
