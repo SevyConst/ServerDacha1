@@ -11,10 +11,8 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com</groupId>
-    <artifactId>Server1</artifactId>
+    <artifactId>ServerDacha1</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Receiver</name>
-    <description>Demo project for Spring Boot</description>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
