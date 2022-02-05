@@ -25,8 +25,7 @@ public class Application implements ApplicationRunner {
         }
 
 
-        Db db = new Db(forProperties.getUrlForDb(), logger);;
-        db.insertEvent("start", System.currentTimeMillis());
+        Db db = new Db(forProperties.getUrlForDb(), logger);
 
         SpringApplication.run(Application.class, args);
     }

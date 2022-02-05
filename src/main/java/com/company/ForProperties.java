@@ -31,11 +31,11 @@ public class ForProperties {
                 logger.error("can't parse properties: can't read port", e);
                 return false;
             }
-            logger.info("Port " + port);
+            logger.info("Port: " + port);
 
             // Db
             urlForDb = prop.getProperty(PROPERTY_URL_FOR_SQL);
-            logger.info("Url for postgresql" + urlForDb);
+            logger.info("Url for postgresql: " + urlForDb);
 
         } catch(IOException e){
             logger.error("can't read properties", e);
