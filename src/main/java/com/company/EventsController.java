@@ -1,8 +1,8 @@
 package com.company;
 
 import com.company.models.EventsResponse;
-import com.company.models.ModelEvent;
-import com.company.models.ModelEvents;
+import com.company.models.Event;
+import com.company.models.Events;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -16,13 +16,13 @@ public class EventsController {
     private int periodSent = 10;
 
     @PostMapping("/event")
-    public EventsResponse receivingEvents(@RequestBody ModelEvents modelEvents) {
+    public EventsResponse receivingEvents(@RequestBody Events events) {
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
-        for (ModelEvent modelEvent : modelEvents.getEvents()) {
-            Long id = modelEvent.getId();
+        for (Event event : events.getEvents()) {
+            Long id = event.getId();
 
-            System.out.println("event name: " + modelEvent.getNameEvent());
+            System.out.println("event name: " + event.getNameEvent());
             System.out.println("event id: " + id);
             System.out.println("device id: " + id);
             System.out.println();
