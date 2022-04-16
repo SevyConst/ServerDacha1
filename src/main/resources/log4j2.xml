@@ -2,7 +2,6 @@
 <Configuration status="INFO" monitorInterval="30">
     <Properties>
         <Property name="LOG_PATTERN">%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} %p %m%n</Property>
-        <Property name="APP_LOG_ROOT">c:/temp</Property>
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT" follow="true">
@@ -10,11 +9,21 @@
         </Console>
 
         <RollingFile name="appLog"
-                     fileName="application.log"
-                     filePattern="application-%d{yyyy-MM-dd}-%i.log">
+                     fileName="logs/application.log"
+                     filePattern="logs/application-%d{yyyy-MM-dd}-%i.log">
             <PatternLayout pattern="${LOG_PATTERN}" />
+
+            <DefaultRolloverStrategy>
+                <Delete basePath="./logs/" maxDepth="1">
+                    <IfAny>
+                        <IfLastModified age="4d" />
+                        <IfAccumulatedFileSize exceeds="500KB" />
+                    </IfAny>
+                </Delete>
+            </DefaultRolloverStrategy>
+
             <Policies>
-                <SizeBasedTriggeringPolicy size="20KB" />
+                <SizeBasedTriggeringPolicy size="400KB" />
             </Policies>
             <DefaultRolloverStrategy max="1" />
         </RollingFile>

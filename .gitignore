@@ -6,3 +6,4 @@ target/
 *.properties
 *.sql
 *.db
+*.log

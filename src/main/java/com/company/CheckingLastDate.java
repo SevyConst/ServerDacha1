@@ -1,20 +1,22 @@
 package com.company;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@DependsOn({"forBot"})
 public class CheckingLastDate implements Runnable {
 
     private static final int COEFFICIENT = 2;
 
     private boolean isWarningConnectionLostSent = false;
 
-    @Autowired
-    ProcessingProperties properties;
+//    @Autowired
+//    ProcessingProperties properties;
 
     @Autowired
     ForBot forBot;
