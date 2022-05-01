@@ -2,50 +2,77 @@ package com.company;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 public class Db {
     static Logger logger = LogManager.getLogger(Db.class.getName());
 
-    @Autowired
-    ProcessingProperties processingProperties;
+    private final String url;
 
-    void doSmth() {
-        System.out.println("do smth");
+
+    Db(String url) {
+        this.url = url;
     }
 
-    void printUrl() {
-        logger.info("db Url :" + processingProperties.getUrlForDb());
+    private static final String SQL_IS_ADDED_CHAT_ID =
+            "SELECT is_admin FROM chat_ids WHERE id = ?";
+    Optional<Boolean> isAdmin(Long chatId) {
+        try (Connection connection = DriverManager.getConnection(url);
+             PreparedStatement statement = connection.prepareStatement(SQL_IS_ADDED_CHAT_ID)) {
+
+            statement.setLong(1, chatId);
+
+            try(ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(resultSet.getBoolean("is_admin"));
+                } else {
+                    return Optional.empty();
+                }
+            } catch (SQLException e) {
+                logger.error(e);
+                return Optional.empty();
+            }
+
+        } catch (SQLException e) {
+            logger.error(e);
+            return Optional.empty();
+        }
     }
 
-//    private final String url;
-//    private final Logger logger;
+    private static final String SQL_GET_ALL_USERS = "SELECT id FROM chat_ids";
+    List<Long> getAllUsers() {
 
-//    Db(String url, Logger logger) {
-//        this.url = url;
-//        this.logger = logger;
-//    }
+        List<Long> chatIds = new ArrayList<>();
 
+        try (Connection connection = DriverManager.getConnection(url);
+             Statement statement = connection.createStatement();
+             ResultSet set = statement.executeQuery(SQL_GET_ALL_USERS)) {
 
-//    private static final String SQL_INSERT_EVENT =
-//            "INSERT INTO events (client_id, client_event_id ,name_event, time_event) VALUES(?, ?, ?, ?)";
-//    void insertEvent(int clientId, long clientEventId, String nameEvent, String timeEvent) {
-//        try (Connection connection = DriverManager.getConnection(url);
-//             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_EVENT)) {
-//
-//            statement.setLong(1, clientId);
-//            statement.setLong(2, clientEventId);
-//            DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS Z");
-//
-//
-//            statement.setTimestamp(1, Timestamp.valueOf(timeEvent));
-//
-//            statement.executeUpdate();
-//
-//        } catch (SQLException e) {
-//            logger.error("can't insert start event to sqlite", e);
-//        }
-//    }
+            while (set.next()) {
+                chatIds.add(set.getLong("id"));
+            }
+        } catch (SQLException e) {
+            logger.error(e);
+        }
+
+        return chatIds;
+    }
+
+    private static final String SQL_INSERT_CHAT_ID =
+            "INSERT INTO chat_ids (id, is_admin) VALUES(?, FALSE)";
+    void insertUser(Long chatId) {
+        try (Connection connection = DriverManager.getConnection(url);
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_CHAT_ID)) {
+
+            statement.setLong(1,chatId);
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            logger.error("can't insert user, chat_id = " + chatId, e);
+        }
+    }
 }

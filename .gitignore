@@ -6,4 +6,4 @@ target/
 *.properties
 *.sql
 *.db
-*.log
+/logs

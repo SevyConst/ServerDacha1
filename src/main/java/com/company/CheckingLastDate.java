@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@DependsOn({"forBot"})
+@DependsOn({"telegramBot"})
 public class CheckingLastDate implements Runnable {
 
     private static final int COEFFICIENT = 2;
@@ -19,7 +19,7 @@ public class CheckingLastDate implements Runnable {
 //    ProcessingProperties properties;
 
     @Autowired
-    ForBot forBot;
+    TelegramBot telegramBot;
 
     private volatile LocalDateTime timeLastConnection;
 
@@ -30,6 +30,7 @@ public class CheckingLastDate implements Runnable {
     CheckingLastDate() {
         Thread thread = new Thread(this,  CheckingLastDate.class.getName());
         thread.start();
+//        telegramBot.sendToAll("sdfkhjskjh");
     }
 
 
@@ -49,7 +50,7 @@ public class CheckingLastDate implements Runnable {
         try {
             TimeUnit.SECONDS.sleep(10);
         } catch (InterruptedException e){
-            forBot.sendToAll("CheckDate: Exception while sleeping");
+            telegramBot.sendToAll("CheckDate: Exception while sleeping");
         }
     }
 
@@ -57,7 +58,7 @@ public class CheckingLastDate implements Runnable {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         if (currentDateTime.isBefore(timeLastConnection)) {
-            forBot.sendToAll("currentDateTime is before dateLastConnect!");
+            telegramBot.sendToAll("currentDateTime is before dateLastConnect!");
 
             return;
         }
@@ -68,13 +69,13 @@ public class CheckingLastDate implements Runnable {
         if (limit.isBefore(currentDateTime)) {
             if (!isWarningConnectionLostSent) {
 
-                forBot.sendToAll("Соединение разорвано!");
+                telegramBot.sendToAll("Соединение разорвано!");
                 isWarningConnectionLostSent = true;
             }
         } else {
             if (isWarningConnectionLostSent) {
 
-                forBot.sendToAll("Соединение восстановлено!");
+                telegramBot.sendToAll("Соединение восстановлено!");
                 isWarningConnectionLostSent = false;
             }
         }
