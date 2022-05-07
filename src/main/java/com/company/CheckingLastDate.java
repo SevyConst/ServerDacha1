@@ -30,7 +30,6 @@ public class CheckingLastDate implements Runnable {
     CheckingLastDate() {
         Thread thread = new Thread(this,  CheckingLastDate.class.getName());
         thread.start();
-//        telegramBot.sendToAll("sdfkhjskjh");
     }
 
 
