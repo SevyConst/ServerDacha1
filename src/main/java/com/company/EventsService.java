@@ -41,7 +41,8 @@ public class EventsService {
                     Event previousEvent = events.getEvents().get(i - 1);
 
                     telegramBot.sendToAll("was off from " + previousEvent.getTimeEvent() +
-                            " to " + event.getTimeEvent());
+                            " to " + event.getTimeEvent().
+                            substring(0, event.getTimeEvent().length() - 4));  // Not show milliseconds
                 } else {
                     telegramBot.sendToAll("pi started!");
                 }

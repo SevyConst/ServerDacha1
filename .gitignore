@@ -7,3 +7,4 @@ target/
 *.sql
 *.db
 /logs
+for prod/

@@ -64,7 +64,7 @@ public class Db {
 
     private static final String SQL_INSERT_CHAT_ID =
             "INSERT INTO chat_ids (id, is_admin) VALUES(?, FALSE)";
-    void insertUser(Long chatId) {
+    boolean insertUser(Long chatId) {
         try (Connection connection = DriverManager.getConnection(url);
              PreparedStatement statement = connection.prepareStatement(SQL_INSERT_CHAT_ID)) {
 
@@ -73,6 +73,9 @@ public class Db {
 
         } catch (SQLException e) {
             logger.error("can't insert user, chat_id = " + chatId, e);
+            return false;
         }
+
+        return true;
     }
 }

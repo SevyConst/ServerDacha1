@@ -50,7 +50,6 @@ public class TelegramBot extends TelegramLongPollingBot {
             Long chatId = update.getMessage().getChatId();
             if (inputMessage.equals(codeWord)) {
                 if (db.isAdmin(chatId).isEmpty()) {
-                    // ToDo: upsert
                     addUser(chatId);
                 } else {
                     userAlreadyAdded(chatId);
@@ -60,10 +59,15 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     private void addUser(Long chatId) {
-        db.insertUser(chatId);
         SendMessage outputMessage = new SendMessage();
         outputMessage.setChatId(chatId.toString());
-        outputMessage.setText("user added!");
+
+        boolean isUserAdded = db.insertUser(chatId);
+            if (isUserAdded) {
+                outputMessage.setText("user added!");
+            } else {
+                outputMessage.setText("Error! User wasn't added");
+            }
         try {
             execute(outputMessage);
         } catch (TelegramApiException e) {
