@@ -8,3 +8,4 @@ target/
 *.db
 /logs
 for prod/
+for local/

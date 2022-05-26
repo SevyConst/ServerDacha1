@@ -1,25 +1,16 @@
 package com.company;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
-@Component
-@DependsOn({"telegramBot"})
 public class CheckingLastDate implements Runnable {
 
+    private Integer periodPing;
     private static final int COEFFICIENT = 2;
 
-    private boolean isWarningConnectionLostSent = false;
-
-//    @Autowired
-//    ProcessingProperties properties;
-
-    @Autowired
     TelegramBot telegramBot;
+
+    private boolean isWarningConnectionLostSent = false;
 
     private volatile LocalDateTime timeLastConnection;
 
@@ -27,7 +18,10 @@ public class CheckingLastDate implements Runnable {
         this.timeLastConnection = timeLastConnection;
     }
 
-    CheckingLastDate() {
+    CheckingLastDate(Integer periodPing, TelegramBot telegramBot) {
+        this.periodPing = periodPing;
+        this.telegramBot = telegramBot;
+
         Thread thread = new Thread(this,  CheckingLastDate.class.getName());
         thread.start();
     }
@@ -63,7 +57,7 @@ public class CheckingLastDate implements Runnable {
         }
 
         LocalDateTime limit = timeLastConnection.plusSeconds(
-                10 * COEFFICIENT);
+                periodPing * COEFFICIENT);
 
         if (limit.isBefore(currentDateTime)) {
             if (!isWarningConnectionLostSent) {

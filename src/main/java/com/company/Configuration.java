@@ -18,5 +18,10 @@ public class Configuration {
                 processingProperties.getCodeWord(), db);
     }
 
+    @Bean
+    public CheckingLastDate checkingLastDate(ProcessingProperties processingProperties,
+                                             TelegramBot telegramBot) {
+        return new CheckingLastDate(processingProperties.getPeriodPing(), telegramBot);
+    }
 
 }
