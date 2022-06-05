@@ -17,13 +17,14 @@ public class EventsService {
 
     private static final String startPiEvent = "start";
 
-    private int periodSent = 10;
-
     @Autowired
     CheckingLastDate checkingLastDate;
 
     @Autowired
     TelegramBot telegramBot;
+
+    @Autowired
+    ProcessingProperties processingProperties;
 
     static Logger logger = LogManager.getLogger(Db.class.getName());
 
@@ -40,9 +41,14 @@ public class EventsService {
                 if (i != 0) {
                     Event previousEvent = events.getEvents().get(i - 1);
 
-                    telegramBot.sendToAll("was off from " + previousEvent.getTimeEvent() +
-                            " to " + event.getTimeEvent().
-                            substring(0, event.getTimeEvent().length() - 4));  // Not show milliseconds
+                    String start = previousEvent.getTimeEvent().substring(0, previousEvent.getTimeEvent().length()
+                                    - 7);  // Don't show milliseconds and seconds
+
+                    String end = event.getTimeEvent().substring(0, event.getTimeEvent().length()
+                                    - 7);  // Don't show milliseconds and seconds
+
+                    telegramBot.sendToAll("was off from " + start +
+                            " to " + end);  // Not show milliseconds
                 } else {
                     telegramBot.sendToAll("pi started!");
                 }
@@ -57,7 +63,7 @@ public class EventsService {
             eventsIdsDelivered.add(id);
         }
         response.setEventsIdsDelivered(eventsIdsDelivered);
-        response.setPeriodSent(periodSent);
+        response.setPeriodSent(processingProperties.getPeriodPing());
 
         return response;
     }
