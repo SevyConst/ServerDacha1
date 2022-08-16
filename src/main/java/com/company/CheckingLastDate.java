@@ -6,13 +6,17 @@ import java.util.concurrent.TimeUnit;
 public class CheckingLastDate implements Runnable {
 
     private Integer periodPing;
-    private static final int COEFFICIENT = 2;
+
+    // The coefficient determines strictness of monitoring
+    public static final int COEFFICIENT = 2;
 
     TelegramBot telegramBot;
 
-    private boolean isWarningConnectionLostSent = false;
+    private boolean isMessageOfflineSent = false;
 
     private volatile LocalDateTime timeLastConnection;
+
+    public volatile boolean isMessageOnlineSent;
 
     public void setTimeLastConnection(LocalDateTime timeLastConnection) {
         this.timeLastConnection = timeLastConnection;
@@ -51,7 +55,7 @@ public class CheckingLastDate implements Runnable {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         if (currentDateTime.isBefore(timeLastConnection)) {
-            telegramBot.sendToAll("currentDateTime is before dateLastConnect!");
+            telegramBot.sendToAll("Error: currentDateTime is before dateLastConnect!");
 
             return;
         }
@@ -60,16 +64,21 @@ public class CheckingLastDate implements Runnable {
                 periodPing * COEFFICIENT);
 
         if (limit.isBefore(currentDateTime)) {
-            if (!isWarningConnectionLostSent) {
+            if (!isMessageOfflineSent) {
 
-                telegramBot.sendToAll("Соединение разорвано!");
-                isWarningConnectionLostSent = true;
+                telegramBot.sendToAll("pi is offline");
+                isMessageOfflineSent = true;
+                isMessageOnlineSent = false;
             }
         } else {
-            if (isWarningConnectionLostSent) {
+            if (isMessageOfflineSent) {
 
-                telegramBot.sendToAll("Соединение восстановлено!");
-                isWarningConnectionLostSent = false;
+                if (!isMessageOnlineSent) {
+                    telegramBot.sendToAll("pi is online");
+                    isMessageOnlineSent = true;
+                }
+
+                isMessageOfflineSent = false;
             }
         }
 

@@ -33,24 +33,22 @@ public class EventsService {
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
 
-        for (int i = 0; i < events.getEvents().size(); i ++) {
+        int numberEvents = events.getEvents().size();
+        for (int i = 0; i < numberEvents; i ++) {
             Event event = events.getEvents().get(i);
             Long id = event.getId();
 
             if (startPiEvent.equals(event.getNameEvent())) {
-                if (i != 0) {
-                    Event previousEvent = events.getEvents().get(i - 1);
-
-                    String start = previousEvent.getTimeEvent().substring(0, previousEvent.getTimeEvent().length()
-                                    - 7);  // Don't show milliseconds and seconds
-
-                    String end = event.getTimeEvent().substring(0, event.getTimeEvent().length()
-                                    - 7);  // Don't show milliseconds and seconds
-
-                    telegramBot.sendToAll("was off from " + start +
-                            " to " + end);  // Not show milliseconds
+                if ( 0 == i ) {
+                    processFirstEvent(event, numberEvents);
                 } else {
-                    telegramBot.sendToAll("pi started!");
+                    Event previousEvent = events.getEvents().get(i - 1);
+                    String start = cutStringTime(previousEvent.getTimeEvent());
+
+                    String end = cutStringTime(event.getTimeEvent());
+
+                    telegramBot.sendToAll("pi was off from " + start +
+                            " to " + end);
                 }
             }
 
@@ -59,7 +57,6 @@ public class EventsService {
             logger.info("device id: " + id);
             logger.info("time: " + event.getTimeEvent());
 
-
             eventsIdsDelivered.add(id);
         }
         response.setEventsIdsDelivered(eventsIdsDelivered);
@@ -67,4 +64,30 @@ public class EventsService {
 
         return response;
     }
+
+   private void processFirstEvent(Event event, int numberEvents) {
+       if (1 == numberEvents) {
+
+           // This is the last event. Don't type time because it is current time
+           telegramBot.sendToAll("pi started");
+       } else {
+           telegramBot.sendToAll("pi started at " +
+                   cutStringTime(event.getTimeEvent()));
+       }
+
+       checkingLastDate.isMessageOnlineSent = true;
+
+   }
+
+    // About precision
+    private String cutStringTime(String time) {
+        if (processingProperties.getPeriodPing() * CheckingLastDate.COEFFICIENT >= 60) {
+            // greater or equal than minute -> don't show seconds and milliseconds:
+            return time.substring(0, time.length() - 7);
+        } else {
+            // less than minute --> don't show milliseconds
+            return time.substring(0, time.length() - 4);
+        }
+    }
+
 }
