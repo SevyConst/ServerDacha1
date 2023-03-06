@@ -33,16 +33,7 @@ public class ProcessingProperties {
 
         try(InputStream inputStream = new FileInputStream(pathConfig))  {
             prop.load(inputStream);
-
-            // port
-            try {
-                port = Integer.parseInt(prop.getProperty(PROPERTY_PORT));
-            } catch (NumberFormatException e) {
-                logger.error("can't parse properties: can't read port", e);
-                return;
-            }
-            logger.info("Port: " + port);
-
+            
             // Db
             urlForDb = prop.getProperty(PROPERTY_URL_FOR_DB);
             logger.info("Url for postgresql: " + urlForDb);

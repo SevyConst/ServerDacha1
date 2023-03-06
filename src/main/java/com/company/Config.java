@@ -2,10 +2,11 @@ package com.company;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@org.springframework.context.annotation.Configuration
+@Configuration
 @EnableConfigurationProperties(ProcessingProperties.class)
-public class Configuration {
+public class Config {
 
     @Bean
     public Db db(ProcessingProperties processingProperties) {
