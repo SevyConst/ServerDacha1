@@ -16,13 +16,11 @@ import java.util.Properties;
 public class ProcessingProperties {
     static Logger logger = LogManager.getLogger(ProcessingProperties.class.getName());
 
-    private static final String PROPERTY_PORT = "port";
     private static final String PROPERTY_URL_FOR_DB = "url_for_db";
     private static final String PROPERTY_PERIOD_SENT = "period_ping";  // in seconds
     private static final String PROPERTY_TELEGRAM_BOT_TOKEN = "telegram_bot_token";
     private static final String PROPERTY_CODE_WORD = "code_word";
 
-    private Integer port;
     private String urlForDb;
     private Integer periodPing;
     private String telegramBotToken;
@@ -33,7 +31,7 @@ public class ProcessingProperties {
 
         try(InputStream inputStream = new FileInputStream(pathConfig))  {
             prop.load(inputStream);
-            
+
             // Db
             urlForDb = prop.getProperty(PROPERTY_URL_FOR_DB);
             logger.info("Url for postgresql: " + urlForDb);
