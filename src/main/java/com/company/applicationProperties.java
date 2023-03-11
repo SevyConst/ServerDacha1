@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 
 @ConfigurationProperties
-public class ProcessingProperties {
+public class applicationProperties {
 
     private String urlForDb;
     private Integer periodPing;

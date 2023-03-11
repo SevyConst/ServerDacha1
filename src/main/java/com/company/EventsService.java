@@ -24,7 +24,7 @@ public class EventsService {
     TelegramBot telegramBot;
 
     @Autowired
-    ProcessingProperties processingProperties;
+    applicationProperties applicationProperties;
 
     static Logger logger = LogManager.getLogger(Db.class.getName());
 
@@ -60,7 +60,7 @@ public class EventsService {
             eventsIdsDelivered.add(id);
         }
         response.setEventsIdsDelivered(eventsIdsDelivered);
-        response.setPeriodSent(processingProperties.getPeriodPing());
+        response.setPeriodSent(applicationProperties.getPeriodPing());
 
         return response;
     }
@@ -81,7 +81,7 @@ public class EventsService {
 
     // About precision
     private String cutStringTime(String time) {
-        if (processingProperties.getPeriodPing() * CheckingLastDate.COEFFICIENT >= 60) {
+        if (applicationProperties.getPeriodPing() * CheckingLastDate.COEFFICIENT >= 60) {
             // greater or equal than minute -> don't show seconds and milliseconds:
             return time.substring(0, time.length() - 7);
         } else {
