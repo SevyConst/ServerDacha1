@@ -26,7 +26,7 @@ public class EventsService {
     @Autowired
     applicationProperties applicationProperties;
 
-    static Logger logger = LogManager.getLogger(Db.class.getName());
+    static Logger logger = LogManager.getLogger(EventsService.class.getName());
 
     EventsResponse processEvents(Events events) {
         checkingLastDate.setTimeLastConnection(LocalDateTime.now());
@@ -47,15 +47,17 @@ public class EventsService {
 
                     String end = cutStringTime(event.getTimeEvent());
 
-                    telegramBot.sendToAll("pi was off from " + start +
-                            " to " + end);
+                    String message = "pi was off from " + start +
+                            " to " + end;
+                    logAndSend(message);
                 }
             }
 
             logger.info("event name: " + event.getNameEvent());
             logger.info("event id: " + id);
-            logger.info("device id: " + id);
             logger.info("time: " + event.getTimeEvent());
+            logger.info("-------------------------------------------------------");
+
 
             eventsIdsDelivered.add(id);
         }
@@ -69,10 +71,12 @@ public class EventsService {
        if (1 == numberEvents) {
 
            // This is the last event. Don't type time because it is current time
-           telegramBot.sendToAll("pi started");
+           String message = "pi started";
+           logAndSend(message);
        } else {
-           telegramBot.sendToAll("pi started at " +
-                   cutStringTime(event.getTimeEvent()));
+           String message = "pi started at " +
+                   cutStringTime(event.getTimeEvent());
+            logAndSend(message);
        }
 
        checkingLastDate.isMessageOnlineSent = true;
@@ -88,6 +92,11 @@ public class EventsService {
             // less than minute --> don't show milliseconds
             return time.substring(0, time.length() - 4);
         }
+    }
+
+    private void logAndSend(String message) {
+        logger.info(message);
+        telegramBot.sendToAll(message);
     }
 
 }

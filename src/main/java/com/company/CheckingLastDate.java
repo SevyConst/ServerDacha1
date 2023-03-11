@@ -1,9 +1,14 @@
 package com.company;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 public class CheckingLastDate implements Runnable {
+
+    static Logger logger = LogManager.getLogger(CheckingLastDate.class.getName());
 
     private Integer periodPing;
 
@@ -47,7 +52,9 @@ public class CheckingLastDate implements Runnable {
         try {
             TimeUnit.SECONDS.sleep(10);
         } catch (InterruptedException e){
-            telegramBot.sendToAll("CheckDate: Exception while sleeping");
+            String message = "CheckDate: Exception while sleeping";
+            logger.error(message, e);
+            telegramBot.sendToAll(message);
         }
     }
 
@@ -55,7 +62,9 @@ public class CheckingLastDate implements Runnable {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         if (currentDateTime.isBefore(timeLastConnection)) {
-            telegramBot.sendToAll("Error: currentDateTime is before dateLastConnect!");
+            String message = "Error: currentDateTime is before dateLastConnect!";
+            logger.error(message);
+            telegramBot.sendToAll(message);
 
             return;
         }
@@ -66,7 +75,10 @@ public class CheckingLastDate implements Runnable {
         if (limit.isBefore(currentDateTime)) {
             if (!isMessageOfflineSent) {
 
-                telegramBot.sendToAll("pi is offline");
+                String message = "pi is offline";
+                logger.info(message);
+                telegramBot.sendToAll(message);
+
                 isMessageOfflineSent = true;
                 isMessageOnlineSent = false;
             }
@@ -74,7 +86,11 @@ public class CheckingLastDate implements Runnable {
             if (isMessageOfflineSent) {
 
                 if (!isMessageOnlineSent) {
-                    telegramBot.sendToAll("pi is online");
+
+                    String message = "pi is online";
+                    logger.info(message);
+                    telegramBot.sendToAll(message);
+
                     isMessageOnlineSent = true;
                 }
 
