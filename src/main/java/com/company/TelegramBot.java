@@ -1,5 +1,7 @@
 package com.company;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -8,6 +10,8 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 public class TelegramBot extends TelegramLongPollingBot {
+
+    static Logger logger = LogManager.getLogger(TelegramBot.class.getName());
 
     private final String token;
     private final String codeWord;
@@ -24,7 +28,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
             botsApi.registerBot(this);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 
@@ -36,7 +40,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             try {
                 execute(outputMessage);
             } catch (TelegramApiException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
     }
@@ -71,7 +75,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(outputMessage);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 
@@ -82,7 +86,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(outputMessage);
         } catch (TelegramApiException e) {
-            e.printStackTrace();
+            logger.error(e);
         }
     }
 
