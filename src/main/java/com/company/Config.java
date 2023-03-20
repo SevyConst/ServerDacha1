@@ -22,7 +22,8 @@ public class Config {
     @Bean
     public CheckingLastDate checkingLastDate(applicationProperties applicationProperties,
                                              TelegramBot telegramBot) {
-        return new CheckingLastDate(applicationProperties.getPeriodPing(), telegramBot);
+        return new CheckingLastDate(applicationProperties.getPeriodPing(),
+                applicationProperties.getCoefficientNotification(), telegramBot);
     }
 
 }

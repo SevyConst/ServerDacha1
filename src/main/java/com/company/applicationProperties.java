@@ -10,6 +10,7 @@ public class applicationProperties {
     private Integer periodPing;
     private String telegramBotToken;
     private String codeWord;
+    private int coefficientNotification;  // The coefficient determines strictness of monitoring
 
     public String getUrlForDb() {
         return urlForDb;
@@ -41,5 +42,13 @@ public class applicationProperties {
 
     public void setCodeWord(String codeWord) {
         this.codeWord = codeWord;
+    }
+
+    public int getCoefficientNotification() {
+        return coefficientNotification;
+    }
+
+    public void setCoefficientNotification(int coefficientNotification) {
+        this.coefficientNotification = coefficientNotification;
     }
 }

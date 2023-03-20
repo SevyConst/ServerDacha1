@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +29,17 @@ public class EventsService {
 
     static Logger logger = LogManager.getLogger(EventsService.class.getName());
 
+    private static final String FIRST_MESSAGE = "pi включился!";
+
+    public static final DateTimeFormatter clientDateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+
+
     EventsResponse processEvents(Events events) {
+
+        LocalDateTime previousConnectionTime = checkingLastDate.getTimeLastConnection();
         checkingLastDate.setTimeLastConnection(LocalDateTime.now());
+
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
 
@@ -40,17 +50,23 @@ public class EventsService {
 
             if (startPiEvent.equals(event.getNameEvent())) {
                 if ( 0 == i ) {
-                    processFirstEvent(event, numberEvents);
+                    processFirstEvent(event.getTimeEvent(), previousConnectionTime);
                 } else {
                     Event previousEvent = events.getEvents().get(i - 1);
-                    String start = cutStringTime(previousEvent.getTimeEvent());
+                    LocalDateTime startLocalDateTime =
+                            LocalDateTime.parse(previousEvent.getTimeEvent(), clientDateTimeFormatter);
+                    String startStr = cutStringTime(startLocalDateTime);
 
-                    String end = cutStringTime(event.getTimeEvent());
+                    LocalDateTime endLocalDateTime =
+                            LocalDateTime.parse(event.getTimeEvent(), clientDateTimeFormatter);
+                    String endStr = cutStringTime(endLocalDateTime);
 
-                    String message = "pi was off from " + start +
-                            " to " + end;
+                    String message = "Электричества не было с " + startStr +
+                            " до " + endStr;
                     logAndSend(message);
                 }
+
+                checkingLastDate.isMessageOnlineSent = true;
             }
 
             logger.info("event name: " + event.getNameEvent());
@@ -67,30 +83,29 @@ public class EventsService {
         return response;
     }
 
-   private void processFirstEvent(Event event, int numberEvents) {
-       if (1 == numberEvents) {
-
-           // This is the last event. Don't type time because it is current time
-           String message = "pi started";
-           logAndSend(message);
+   private void processFirstEvent(String timeStr, LocalDateTime previousConnectionTime) {
+       if (null == previousConnectionTime) {
+           logAndSend(FIRST_MESSAGE);
        } else {
-           String message = "pi started at " +
-                   cutStringTime(event.getTimeEvent());
-            logAndSend(message);
+
+           LocalDateTime endLocalDateTime =
+                   LocalDateTime.parse(timeStr, clientDateTimeFormatter);
+
+           logAndSend("Соединение восстановлено! Электричества не было с "
+                   + cutStringTime(previousConnectionTime) +
+                   " до " +
+                   cutStringTime(endLocalDateTime));
        }
-
-       checkingLastDate.isMessageOnlineSent = true;
-
    }
 
     // About precision
-    private String cutStringTime(String time) {
-        if (applicationProperties.getPeriodPing() * CheckingLastDate.COEFFICIENT >= 60) {
-            // greater or equal than minute -> don't show seconds and milliseconds:
-            return time.substring(0, time.length() - 7);
+    private String cutStringTime(LocalDateTime time) {
+
+        // greater or equal than minute -> don't show seconds:
+        if (applicationProperties.getPeriodPing() * applicationProperties.getCoefficientNotification() >= 60) {
+            return time.format(CheckingLastDate.dateTimeFormatterWithoutSeconds);
         } else {
-            // less than minute --> don't show milliseconds
-            return time.substring(0, time.length() - 4);
+            return time.format(CheckingLastDate.dateTimeFormatterSeconds);
         }
     }
 
