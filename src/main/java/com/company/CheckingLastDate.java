@@ -13,19 +13,23 @@ public class CheckingLastDate implements Runnable {
 
     public static final String MESSAGE_OFFLINE = "Соединение разорвано!";
 
-    public final Integer coefficientNotification;  // The coefficient determines strictness of monitoring
+    private static final Integer LIMIT_SHOWING_SECONDS = 10;
+
     private final Integer periodPing;
+    private final Integer coefficientNotification;
     private final TelegramBot telegramBot;
 
     private boolean isMessageOfflineSent = false;
 
     private volatile LocalDateTime timeLastConnection;
 
+    private volatile LocalDateTime previousConnectionTime;
+
     public volatile boolean isMessageOnlineSent;
 
     public static final DateTimeFormatter dateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    public static final DateTimeFormatter dateTimeFormatterWithoutSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-
+    public static final DateTimeFormatter dateTimeFormatterWithoutSeconds =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public void setTimeLastConnection(LocalDateTime timeLastConnection) {
         this.timeLastConnection = timeLastConnection;
@@ -35,7 +39,17 @@ public class CheckingLastDate implements Runnable {
         return timeLastConnection;
     }
 
-    CheckingLastDate(Integer periodPing, Integer coefficientNotification, TelegramBot telegramBot) {
+    public LocalDateTime getPreviousConnectionTime() {
+        return previousConnectionTime;
+    }
+
+    public void setPreviousConnectionTime(LocalDateTime previousConnectionTime) {
+        this.previousConnectionTime = previousConnectionTime;
+    }
+
+    CheckingLastDate(Integer periodPing,
+                     Integer coefficientNotification,
+                     TelegramBot telegramBot) {
         this.periodPing = periodPing;
         this.coefficientNotification = coefficientNotification;
         this.telegramBot = telegramBot;
@@ -59,7 +73,7 @@ public class CheckingLastDate implements Runnable {
         }
 
         try {
-            TimeUnit.SECONDS.sleep(10);
+            TimeUnit.SECONDS.sleep(periodPing);
         } catch (InterruptedException e){
             String message = "CheckDate: Exception while sleeping";
             logger.error(message, e);
@@ -92,7 +106,7 @@ public class CheckingLastDate implements Runnable {
         } else {
             if (isMessageOfflineSent) {
                 if (!isMessageOnlineSent) {
-                    sendMessageOnline(currentDateTime);
+                    sendMessageOnline();
                     isMessageOnlineSent = true;
                 }
 
@@ -101,18 +115,21 @@ public class CheckingLastDate implements Runnable {
         }
     }
 
-    private void sendMessageOnline(LocalDateTime currentDateTime) {
-        String message;
-        if (periodPing*coefficientNotification >= 60) {
-            message = "Соединение восстановлено! Интернет не работал c " +
-                    timeLastConnection.format(dateTimeFormatterWithoutSeconds) +
-                    " до " + currentDateTime.format(dateTimeFormatterWithoutSeconds);
-        } else {
-            message = "Соединение восстановлено! Интернет не работал c " +
-                    timeLastConnection.format(dateTimeFormatterSeconds) +
-                    " до " + currentDateTime.format(dateTimeFormatterSeconds);
-        }
+    private void sendMessageOnline() {
+        String message = "Соединение восстановлено! Интернет не работал c " +
+                format(previousConnectionTime) +
+                " до " + format(timeLastConnection);
         logger.info(message);
         telegramBot.sendToAll(message);
+    }
+
+    public String format(LocalDateTime time) {
+
+        // greater or equal than minute -> don't show seconds:
+        if (periodPing >= LIMIT_SHOWING_SECONDS) {
+            return time.format(dateTimeFormatterWithoutSeconds);
+        } else {
+            return time.format(dateTimeFormatterSeconds);
+        }
     }
 }

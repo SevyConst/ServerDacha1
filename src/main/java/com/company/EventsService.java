@@ -25,7 +25,7 @@ public class EventsService {
     TelegramBot telegramBot;
 
     @Autowired
-    applicationProperties applicationProperties;
+    ApplicationProperties applicationProperties;
 
     static Logger logger = LogManager.getLogger(EventsService.class.getName());
 
@@ -34,14 +34,15 @@ public class EventsService {
     public static final DateTimeFormatter clientDateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
 
-
     EventsResponse processEvents(Events events) {
 
-        LocalDateTime previousConnectionTime = checkingLastDate.getTimeLastConnection();
+        checkingLastDate.setPreviousConnectionTime(checkingLastDate.getTimeLastConnection());
         checkingLastDate.setTimeLastConnection(LocalDateTime.now());
 
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
+
+        boolean wasRestart = false;
 
         int numberEvents = events.getEvents().size();
         for (int i = 0; i < numberEvents; i ++) {
@@ -49,21 +50,23 @@ public class EventsService {
             Long id = event.getId();
 
             if (startPiEvent.equals(event.getNameEvent())) {
+
+                wasRestart = true;
+
                 if ( 0 == i ) {
-                    processFirstEvent(event.getTimeEvent(), previousConnectionTime);
+                    processFirstEvent(event.getTimeEvent());
                 } else {
                     Event previousEvent = events.getEvents().get(i - 1);
                     LocalDateTime startLocalDateTime =
                             LocalDateTime.parse(previousEvent.getTimeEvent(), clientDateTimeFormatter);
-                    String startStr = cutStringTime(startLocalDateTime);
+                    String startStr = checkingLastDate.format(startLocalDateTime);
 
                     LocalDateTime endLocalDateTime =
                             LocalDateTime.parse(event.getTimeEvent(), clientDateTimeFormatter);
-                    String endStr = cutStringTime(endLocalDateTime);
+                    String endStr = checkingLastDate.format(endLocalDateTime);
 
-                    String message = "Электричества не было с " + startStr +
-                            " до " + endStr;
-                    logAndSend(message);
+                    logAndSend("Электричества не было с " + startStr +
+                            " до " + endStr);
                 }
 
                 checkingLastDate.isMessageOnlineSent = true;
@@ -77,37 +80,31 @@ public class EventsService {
 
             eventsIdsDelivered.add(id);
         }
+
+        if (wasRestart) {
+            logAndSend("Соединение восстановлено!");
+        }
+
         response.setEventsIdsDelivered(eventsIdsDelivered);
         response.setPeriodSent(applicationProperties.getPeriodPing());
 
         return response;
     }
 
-   private void processFirstEvent(String timeStr, LocalDateTime previousConnectionTime) {
-       if (null == previousConnectionTime) {
+   private void processFirstEvent(String timeStr) {
+       if (null == checkingLastDate.getPreviousConnectionTime()) {
            logAndSend(FIRST_MESSAGE);
        } else {
 
            LocalDateTime endLocalDateTime =
                    LocalDateTime.parse(timeStr, clientDateTimeFormatter);
 
-           logAndSend("Соединение восстановлено! Электричества не было с "
-                   + cutStringTime(previousConnectionTime) +
+           logAndSend("Электричества не было с "
+                   + checkingLastDate.format(checkingLastDate.getPreviousConnectionTime()) +
                    " до " +
-                   cutStringTime(endLocalDateTime));
+                   checkingLastDate.format(endLocalDateTime));
        }
    }
-
-    // About precision
-    private String cutStringTime(LocalDateTime time) {
-
-        // greater or equal than minute -> don't show seconds:
-        if (applicationProperties.getPeriodPing() * applicationProperties.getCoefficientNotification() >= 60) {
-            return time.format(CheckingLastDate.dateTimeFormatterWithoutSeconds);
-        } else {
-            return time.format(CheckingLastDate.dateTimeFormatterSeconds);
-        }
-    }
 
     private void logAndSend(String message) {
         logger.info(message);
