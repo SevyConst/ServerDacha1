@@ -13,10 +13,16 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     static Logger logger = LogManager.getLogger(TelegramBot.class.getName());
 
-    private final String token;
-    private final String codeWord;
+    private String token;
+    private String codeWord;
 
-    Db db;
+    private Db db;
+
+
+    // For tests
+    TelegramBot() {
+
+    }
 
     TelegramBot(String token, String codeWord, Db db) {
 
@@ -95,8 +101,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         // TODO
         return "Малыгино";
     }
-
-
 
     @Override
     public String getBotToken() {

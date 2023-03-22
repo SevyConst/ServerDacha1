@@ -29,7 +29,8 @@ public class EventsService {
 
     static Logger logger = LogManager.getLogger(EventsService.class.getName());
 
-    private static final String FIRST_MESSAGE = "pi включился!";
+    public static final String FIRST_MESSAGE = "pi включился!";
+    public static final String MESSAGE_RECONNECTED = "Соединение восстановлено!";
 
     public static final DateTimeFormatter clientDateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -42,7 +43,7 @@ public class EventsService {
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
 
-        boolean wasRestart = false;
+        boolean wasRestarted = false;
 
         int numberEvents = events.getEvents().size();
         for (int i = 0; i < numberEvents; i ++) {
@@ -51,7 +52,7 @@ public class EventsService {
 
             if (startPiEvent.equals(event.getNameEvent())) {
 
-                wasRestart = true;
+                wasRestarted = true;
 
                 if ( 0 == i ) {
                     processFirstEvent(event.getTimeEvent());
@@ -81,8 +82,8 @@ public class EventsService {
             eventsIdsDelivered.add(id);
         }
 
-        if (wasRestart) {
-            logAndSend("Соединение восстановлено!");
+        if (wasRestarted) {
+            logAndSend(MESSAGE_RECONNECTED);
         }
 
         response.setEventsIdsDelivered(eventsIdsDelivered);
