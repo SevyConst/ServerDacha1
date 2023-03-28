@@ -15,9 +15,9 @@ public class CheckingLastDate implements Runnable {
 
     private static final Integer LIMIT_SHOWING_SECONDS = 10;
 
-    private final Integer periodPing;
-    private final Integer coefficientNotification;
-    private final TelegramBot telegramBot;
+    private Integer periodPing;
+    private Integer coefficientNotification;
+    private TelegramBot telegramBot;
 
     private boolean isMessageOfflineSent = false;
 
@@ -45,6 +45,18 @@ public class CheckingLastDate implements Runnable {
 
     public void setPreviousConnectionTime(LocalDateTime previousConnectionTime) {
         this.previousConnectionTime = previousConnectionTime;
+    }
+
+    public void setTelegramBot(TelegramBot telegramBot) {
+        this.telegramBot = telegramBot;
+    }
+
+    public void setPeriodPing(Integer periodPing) {
+        this.periodPing = periodPing;
+    }
+
+    public void setCoefficientNotification(Integer coefficientNotification) {
+        this.coefficientNotification = coefficientNotification;
     }
 
     CheckingLastDate(Integer periodPing,

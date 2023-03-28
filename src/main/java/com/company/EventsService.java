@@ -29,8 +29,10 @@ public class EventsService {
 
     static Logger logger = LogManager.getLogger(EventsService.class.getName());
 
-    public static final String FIRST_MESSAGE = "pi включился!";
-    public static final String MESSAGE_RECONNECTED = "Соединение восстановлено!";
+    public static final String MESSAGE_FIRST = "Raspberry Pi включился в ";
+    public static final String MESSAGE_ELECTRICITY_OFF = "Электричества не было с ";
+    public static final String MESSAGE_UNTIL = " до ";
+    public static final String MESSAGE_RECONNECTED = "Сейчас соединение восстановлено.";
 
     public static final DateTimeFormatter clientDateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
@@ -43,19 +45,15 @@ public class EventsService {
         EventsResponse response = new EventsResponse();
         List<Long> eventsIdsDelivered = new ArrayList<>();
 
-        boolean wasRestarted = false;
-
+        StringBuilder message = new StringBuilder();
         int numberEvents = events.getEvents().size();
         for (int i = 0; i < numberEvents; i ++) {
             Event event = events.getEvents().get(i);
             Long id = event.getId();
 
             if (startPiEvent.equals(event.getNameEvent())) {
-
-                wasRestarted = true;
-
                 if ( 0 == i ) {
-                    processFirstEvent(event.getTimeEvent());
+                    message.append(processFirstEvent(event.getTimeEvent()));
                 } else {
                     Event previousEvent = events.getEvents().get(i - 1);
                     LocalDateTime startLocalDateTime =
@@ -66,8 +64,9 @@ public class EventsService {
                             LocalDateTime.parse(event.getTimeEvent(), clientDateTimeFormatter);
                     String endStr = checkingLastDate.format(endLocalDateTime);
 
-                    logAndSend("Электричества не было с " + startStr +
-                            " до " + endStr);
+
+                    message.append(MESSAGE_ELECTRICITY_OFF).append(startStr).append(MESSAGE_UNTIL)
+                            .append(endStr).append(";\n");
                 }
 
                 checkingLastDate.isMessageOnlineSent = true;
@@ -81,9 +80,9 @@ public class EventsService {
 
             eventsIdsDelivered.add(id);
         }
-
-        if (wasRestarted) {
-            logAndSend(MESSAGE_RECONNECTED);
+        if (!message.isEmpty()) {
+            message.append(MESSAGE_RECONNECTED);
+            logAndSend(message.toString());
         }
 
         response.setEventsIdsDelivered(eventsIdsDelivered);
@@ -92,19 +91,20 @@ public class EventsService {
         return response;
     }
 
-   private void processFirstEvent(String timeStr) {
-       if (null == checkingLastDate.getPreviousConnectionTime()) {
-           logAndSend(FIRST_MESSAGE);
-       } else {
+    private String processFirstEvent(String timeStr) {
+        LocalDateTime time =
+               LocalDateTime.parse(timeStr, clientDateTimeFormatter);
 
-           LocalDateTime endLocalDateTime =
-                   LocalDateTime.parse(timeStr, clientDateTimeFormatter);
+        timeStr = checkingLastDate.format(time);
 
-           logAndSend("Электричества не было с "
-                   + checkingLastDate.format(checkingLastDate.getPreviousConnectionTime()) +
-                   " до " +
-                   checkingLastDate.format(endLocalDateTime));
-       }
+        if (null == checkingLastDate.getPreviousConnectionTime()) {
+            return MESSAGE_FIRST + timeStr + ";\n";
+        }
+
+        return MESSAGE_ELECTRICITY_OFF
+               + checkingLastDate.format(checkingLastDate.getPreviousConnectionTime()) +
+               MESSAGE_UNTIL +
+               timeStr + ";\n";
    }
 
     private void logAndSend(String message) {
