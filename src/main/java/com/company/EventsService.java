@@ -72,12 +72,6 @@ public class EventsService {
                 checkingLastDate.isMessageOnlineSent = true;
             }
 
-            logger.info("event name: " + event.getNameEvent());
-            logger.info("event id: " + id);
-            logger.info("time: " + event.getTimeEvent());
-            logger.info("-------------------------------------------------------");
-
-
             eventsIdsDelivered.add(id);
         }
         if (!message.isEmpty()) {
@@ -87,7 +81,6 @@ public class EventsService {
 
         response.setEventsIdsDelivered(eventsIdsDelivered);
         response.setPeriodSent(applicationProperties.getPeriodPing());
-
         return response;
     }
 
