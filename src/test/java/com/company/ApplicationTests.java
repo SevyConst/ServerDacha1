@@ -34,8 +34,7 @@ public class ApplicationTests {
 
     @Autowired
     CheckingLastDate checkingLastDate;
-    
-    @Autowired
+
     @MockBean
     TelegramBot telegramBotMock;
 
@@ -208,8 +207,8 @@ public class ApplicationTests {
                 .andExpect(content().string("{\"eventsIdsDelivered\":[48187],\"periodSent\":"
                         + PERIOD_PING +"}"));
 
-        String previousConnectionTimeStr =
-                LocalDateTime.now().format(CheckingLastDate.dateTimeFormatterSeconds);
+        LocalDateTime previousConnectionTime = LocalDateTime.now();
+
         TimeUnit.SECONDS.sleep(PERIOD_PING*COEFFICIENT_NOTIFICATION + 1);
 
         this.mockMvc.perform(post("/event").content("""
@@ -236,11 +235,18 @@ public class ApplicationTests {
         assertThat(capturedString.getAllValues().get(0)).isEqualTo(EventsService.MESSAGE_FIRST
                 + "2023-03-21 12:50:18;\n" + EventsService.MESSAGE_RECONNECTED);
         assertThat(capturedString.getAllValues().get(1)).isEqualTo(CheckingLastDate.MESSAGE_OFFLINE);
-        assertThat(capturedString.getAllValues().get(2)).isEqualTo(EventsService.MESSAGE_ELECTRICITY_OFF
-                + previousConnectionTimeStr
+        assertThat(capturedString.getAllValues().get(2)).isIn
+                (EventsService.MESSAGE_ELECTRICITY_OFF
+                + previousConnectionTime.format(CheckingLastDate.dateTimeFormatterSeconds)
                 + EventsService.MESSAGE_UNTIL
                 + "2023-03-21 12:55:18;\n"
 
-                + EventsService.MESSAGE_RECONNECTED);
+                + EventsService.MESSAGE_RECONNECTED,
+
+                        EventsService.MESSAGE_ELECTRICITY_OFF
+                        + previousConnectionTime.minusSeconds(1).format(CheckingLastDate.dateTimeFormatterSeconds)
+                        + EventsService.MESSAGE_UNTIL
+                                + "2023-03-21 12:55:18;\n"
+                );
     }
 }
