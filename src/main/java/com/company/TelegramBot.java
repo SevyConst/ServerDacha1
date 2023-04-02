@@ -9,25 +9,23 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.util.Optional;
+
 public class TelegramBot extends TelegramLongPollingBot {
 
     static Logger logger = LogManager.getLogger(TelegramBot.class.getName());
 
-    private String token;
-    private String codeWord;
+    private static final String DELETE_ME = "deleteMe";
 
-    private Db db;
+    private final String codeWord;
+    private final String adminCodeWord;
+    private final Db db;
 
+    TelegramBot(String botToken, String codeWord, String adminCodeWord, Db db) {
+        super(botToken);
 
-    // For tests
-    TelegramBot() {
-
-    }
-
-    TelegramBot(String token, String codeWord, Db db) {
-
-        this.token = token;
         this.codeWord = codeWord;
+        this.adminCodeWord = adminCodeWord;
         this.db = db;
 
         try {
@@ -40,59 +38,181 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     public void sendToAll(String message) {
         for(Long chatId : db.getAllUsers()) {
-            SendMessage outputMessage = new SendMessage();
-            outputMessage.setChatId(chatId.toString());
-            outputMessage.setText(message);
-            try {
-                execute(outputMessage);
-            } catch (TelegramApiException e) {
-                logger.error(e);
-            }
+            sendToTelegram(message, chatId);
         }
+    }
+
+    public void sendToTelegram(String message, Long chatId) {
+        SendMessage outputMessage = new SendMessage();
+        outputMessage.setChatId(chatId.toString());
+        outputMessage.setText(message);
+
+        try {
+            execute(outputMessage);
+        } catch (TelegramApiException e) {
+            logger.error("Can't send to telegram: " +
+                    "\"" + message + "\", chatId: " +
+                    chatId, e);
+            return;
+        }
+
+        logger.info("Sent to telegram: " +
+                "\"" + message + "\", chatId: " +
+                chatId);
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        // We check if the update has a message and the message has text
         if (update.hasMessage() && update.getMessage().hasText()) {
 
             String inputMessage = update.getMessage().getText();
             Long chatId = update.getMessage().getChatId();
-            if (inputMessage.equals(codeWord)) {
-                if (db.isAdmin(chatId).isEmpty()) {
-                    addUser(chatId);
-                } else {
-                    userAlreadyAdded(chatId);
-                }
+            logger.info("Input telegram message: " + "\""
+                    + inputMessage +
+                    "\", chatId: " + chatId);
+
+            if (codeWord.equals(inputMessage)) {
+                processCodeWord(chatId);
+            } else if (adminCodeWord.equals(inputMessage)) {
+                processAdminCodeWord(chatId);
+            } else if (DELETE_ME.equals(inputMessage)) {
+                processDeleteMe(chatId);
             }
         }
     }
 
-    private void addUser(Long chatId) {
-        SendMessage outputMessage = new SendMessage();
-        outputMessage.setChatId(chatId.toString());
-
-        boolean isUserAdded = db.insertUser(chatId);
-            if (isUserAdded) {
-                outputMessage.setText("user added!");
-            } else {
-                outputMessage.setText("Error! User wasn't added");
-            }
+    private void processCodeWord(Long chatId) {
+        Optional<Boolean> isAdmin;
         try {
-            execute(outputMessage);
-        } catch (TelegramApiException e) {
+            isAdmin = db.isAdmin(chatId);
+        } catch (BusinessLogicException e) {
             logger.error(e);
+            sendToTelegram("Ошибка! Пользователь не добавлен", chatId);
+            return;
+        }
+
+        if (isAdmin.isEmpty()) {
+            addRegularUser(chatId);
+        } else if (isAdmin.get()) {
+            updateAdminToRegularUser(chatId);
+        } else {
+            sendToTelegram("Этот пользователь уже был добавлен!", chatId);
         }
     }
 
-    private void userAlreadyAdded(Long chatId) {
-        SendMessage outputMessage = new SendMessage();
-        outputMessage.setChatId(chatId.toString());
-        outputMessage.setText("this user has already been added!");
+    private void addRegularUser(Long chatId) {
+        int numberUsersAdded;
         try {
-            execute(outputMessage);
-        } catch (TelegramApiException e) {
+            numberUsersAdded = db.insertUser(chatId, false);
+        } catch (BusinessLogicException e) {
             logger.error(e);
+            sendToTelegram("Ошибка! Пользователь не добавлен", chatId);
+            return;
+        }
+
+        if ( 0 == numberUsersAdded) {
+            sendToTelegram("Ошибка! 0 пользователей добавлен в бд", chatId);
+        } else if (1 == numberUsersAdded) {
+            sendToTelegram("Пользователь добавлен!", chatId);
+        } else {
+            sendToTelegram( "Ошибка! " +  numberUsersAdded + " пользователей добавлено в бд", chatId);
+        }
+    }
+
+    private void updateAdminToRegularUser(Long chatId) {
+        int numberUpdatedUsers;
+        try {
+            numberUpdatedUsers = db.updatePrivileges(chatId, false);
+        } catch (BusinessLogicException e) {
+            logger.error(e);
+            sendToTelegram("Ошибка! Права не были изменены", chatId);
+            return;
+        }
+
+        if (0 == numberUpdatedUsers) {
+            sendToTelegram("Ошибка! 0 строк изменено в бд", chatId);
+        } else if (1 == numberUpdatedUsers) {
+            sendToTelegram("Права изменены на обычного пользователя", chatId);
+        } else {
+            sendToTelegram("Ошибка! " + numberUpdatedUsers + " строк изменено в бд", chatId);
+        }
+    }
+
+    private void processAdminCodeWord(Long chatId) {
+        Optional<Boolean> isAdmin;
+        try {
+            isAdmin = db.isAdmin(chatId);
+        } catch (BusinessLogicException e) {
+            logger.error(e);
+            sendToTelegram("Ошибка! Пользователь не добавлен", chatId);
+            return;
+        }
+        if (isAdmin.isEmpty()) {
+            addAdmin(chatId);
+        } else if (isAdmin.get()) {
+            sendToTelegram("Этот админ уже был добавлен!", chatId);
+        } else {
+            updateRegularUserToAdmin(chatId);
+        }
+    }
+
+    private void addAdmin(Long chatId) {
+        int numberAdminAdded;
+        try {
+            numberAdminAdded = db.insertUser(chatId, true);
+        } catch (BusinessLogicException e) {
+            logger.error(e);
+            sendToTelegram("Ошибка! Админ не был добавлен!", chatId);
+            return;
+        }
+
+        if ( 0 == numberAdminAdded) {
+            sendToTelegram("Ошибка! 0 админов добавлено!", chatId);
+        }
+        if (1 == numberAdminAdded) {
+            sendToTelegram("Админ добавлен!", chatId);
+        } else {
+            sendToTelegram( "Ошибка! " +  numberAdminAdded + " админов добавлено", chatId);
+        }
+
+    }
+
+    private void updateRegularUserToAdmin(Long chatId) {
+        int numberUpdatedUsers;
+        try {
+            numberUpdatedUsers = db.updatePrivileges(chatId, true);
+        } catch (BusinessLogicException e) {
+            logger.error(e);
+            sendToTelegram("Ошибка! Права не были изменены", chatId);
+            return;
+        }
+
+        if (0 == numberUpdatedUsers) {
+            sendToTelegram("Ошибка! 0 строк изменено в бд", chatId);
+        } else if (1 == numberUpdatedUsers) {
+            sendToTelegram("Права изменены на админа", chatId);
+        } else {
+            sendToTelegram("Ошибка! " + numberUpdatedUsers + " строк изменено в бд", chatId);
+        }
+    }
+
+    private void processDeleteMe(Long chatId) {
+
+        int numberDeletedUsers;
+        try {
+            numberDeletedUsers = db.deleteUser(chatId);
+        } catch (BusinessLogicException e) {
+            logger.error(e);
+            sendToTelegram("Ошибка! Пользователь/админ не удалён", chatId);
+            return;
+        }
+
+        if (0 == numberDeletedUsers) {
+            sendToTelegram("Ошибка! Такого пользователя/админа нет", chatId);
+        } else if (1 == numberDeletedUsers) {
+            sendToTelegram("Пользователь/админ удалён!", chatId);
+        } else {
+            sendToTelegram("Ошибка! Количество удалённых пользователей/админов: " + numberDeletedUsers, chatId);
         }
     }
 
@@ -100,11 +220,5 @@ public class TelegramBot extends TelegramLongPollingBot {
     public String getBotUsername() {
         // TODO
         return "Малыгино";
-    }
-
-    @Override
-    public String getBotToken() {
-        // TODO
-        return this.token;
     }
 }

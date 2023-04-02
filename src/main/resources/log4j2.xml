@@ -17,7 +17,7 @@
                 <Delete basePath="./logs/" maxDepth="1">
                     <IfAny>
                         <IfLastModified age="90d" />
-                        <IfAccumulatedFileCount exceeds="12" />
+                        <IfAccumulatedFileCount exceeds="100" />
                     </IfAny>
                 </Delete>
             </DefaultRolloverStrategy>

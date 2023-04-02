@@ -13,14 +13,13 @@ public class Db {
 
     private final String url;
 
-
     Db(String url) {
         this.url = url;
     }
 
     private static final String SQL_IS_ADDED_CHAT_ID =
             "SELECT is_admin FROM chat_ids WHERE id = ?";
-    Optional<Boolean> isAdmin(Long chatId) {
+    Optional<Boolean> isAdmin(Long chatId) throws BusinessLogicException {
         try (Connection connection = DriverManager.getConnection(url);
              PreparedStatement statement = connection.prepareStatement(SQL_IS_ADDED_CHAT_ID)) {
 
@@ -34,12 +33,12 @@ public class Db {
                 }
             } catch (SQLException e) {
                 logger.error(e);
-                return Optional.empty();
+                throw new BusinessLogicException(e);
             }
 
         } catch (SQLException e) {
             logger.error(e);
-            return Optional.empty();
+            throw new BusinessLogicException(e);
         }
     }
 
@@ -63,19 +62,57 @@ public class Db {
     }
 
     private static final String SQL_INSERT_CHAT_ID =
-            "INSERT INTO chat_ids (id, is_admin) VALUES(?, FALSE)";
-    boolean insertUser(Long chatId) {
-        try (Connection connection = DriverManager.getConnection(url);
-             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_CHAT_ID)) {
+            "INSERT INTO chat_ids (id, is_admin) VALUES(?, ?)";
+    int insertUser(Long chatId, boolean isAdmin) throws BusinessLogicException {
+        int numberInsertedUsers;
+        try(Connection connection = DriverManager.getConnection(url);
+            PreparedStatement statement = connection.prepareStatement(SQL_INSERT_CHAT_ID)) {
 
             statement.setLong(1,chatId);
-            statement.executeUpdate();
+            statement.setBoolean(2, isAdmin);
+            numberInsertedUsers = statement.executeUpdate();
 
         } catch (SQLException e) {
-            logger.error("can't insert user, chat_id = " + chatId, e);
-            return false;
+            logger.error(e);
+            throw new BusinessLogicException("can't insert user, chat_id = "+ chatId, e);
         }
 
-        return true;
+        return numberInsertedUsers;
     }
+
+    private static final String SQL_UPDATE_ADMIN_TO_REGULAR_USER =
+            "UPDATE chat_ids SET is_admin = ? WHERE id = ?";
+    public int updatePrivileges(Long chatId, boolean isAdmin) throws BusinessLogicException {
+        int numberUpdatedUsers;
+        try(Connection connection = DriverManager.getConnection(url);
+            PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_ADMIN_TO_REGULAR_USER)) {
+
+            statement.setBoolean(1, isAdmin);
+            statement.setLong(2, chatId);
+            numberUpdatedUsers = statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(e);
+            throw new BusinessLogicException("can't update privileges", e);
+        }
+
+        return numberUpdatedUsers;
+    }
+
+    private static final String SQL_DELETE_USER =
+            "DELETE FROM chat_ids WHERE id = ?";
+    public int deleteUser(Long chatId) throws BusinessLogicException {
+        int numberDeletedUsers;
+        try(Connection connection = DriverManager.getConnection(url);
+            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_USER)) {
+
+            statement.setLong(1, chatId);
+            numberDeletedUsers = statement.executeUpdate();
+        } catch (SQLException e) {
+            logger.error(e);
+            throw new BusinessLogicException("Can't delete user", e);
+        }
+
+        return numberDeletedUsers;
+    }
+
 }

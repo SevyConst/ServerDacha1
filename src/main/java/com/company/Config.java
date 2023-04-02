@@ -16,7 +16,9 @@ public class Config {
     @Bean
     public TelegramBot telegramBot(ApplicationProperties applicationProperties, Db db) {
         return new TelegramBot(applicationProperties.getTelegramBotToken(),
-                applicationProperties.getCodeWord(), db);
+                applicationProperties.getCodeWord(),
+                applicationProperties.getAdminCodeWord(),
+                db);
     }
 
     @Bean

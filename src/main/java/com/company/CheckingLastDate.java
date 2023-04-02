@@ -87,9 +87,7 @@ public class CheckingLastDate implements Runnable {
         try {
             TimeUnit.SECONDS.sleep(periodPing);
         } catch (InterruptedException e){
-            String message = "CheckDate: Exception while sleeping";
-            logger.error(message, e);
-            telegramBot.sendToAll(message);
+            telegramBot.sendToAll("CheckDate: Exception while sleeping");
         }
     }
 
@@ -97,9 +95,7 @@ public class CheckingLastDate implements Runnable {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         if (currentDateTime.isBefore(timeLastConnection)) {
-            String message = "Error: currentDateTime is before dateLastConnect!";
-            logger.error(message);
-            telegramBot.sendToAll(message);
+            telegramBot.sendToAll("Error: currentDateTime is before dateLastConnect!");
 
             return;
         }
@@ -109,7 +105,6 @@ public class CheckingLastDate implements Runnable {
 
         if (limit.isBefore(currentDateTime)) {
             if (!isMessageOfflineSent) {
-                logger.info(MESSAGE_OFFLINE);
                 telegramBot.sendToAll(MESSAGE_OFFLINE);
 
                 isMessageOfflineSent = true;
@@ -128,11 +123,9 @@ public class CheckingLastDate implements Runnable {
     }
 
     private void sendMessageOnline() {
-        String message = "Соединение восстановлено! Интернет не работал c " +
+        telegramBot.sendToAll("Соединение восстановлено! Интернет не работал c " +
                 format(previousConnectionTime) +
-                " до " + format(timeLastConnection);
-        logger.info(message);
-        telegramBot.sendToAll(message);
+                " до " + format(timeLastConnection));
     }
 
     public String format(LocalDateTime time) {

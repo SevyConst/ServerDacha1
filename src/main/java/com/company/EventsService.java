@@ -76,7 +76,7 @@ public class EventsService {
         }
         if (!message.isEmpty()) {
             message.append(MESSAGE_RECONNECTED);
-            logAndSend(message.toString());
+            telegramBot.sendToAll(message.toString());
         }
 
         response.setEventsIdsDelivered(eventsIdsDelivered);
@@ -99,10 +99,4 @@ public class EventsService {
                MESSAGE_UNTIL +
                timeStr + ";\n";
    }
-
-    private void logAndSend(String message) {
-        logger.info(message);
-        telegramBot.sendToAll(message);
-    }
-
 }
