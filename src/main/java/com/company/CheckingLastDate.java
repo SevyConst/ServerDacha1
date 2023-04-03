@@ -27,6 +27,8 @@ public class CheckingLastDate implements Runnable {
 
     public volatile boolean isMessageOnlineSent;
 
+    public static final DateTimeFormatter dateTimeFormatterMilliSeconds =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
     public static final DateTimeFormatter dateTimeFormatterSeconds = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     public static final DateTimeFormatter dateTimeFormatterWithoutSeconds =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -95,7 +97,9 @@ public class CheckingLastDate implements Runnable {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         if (currentDateTime.isBefore(timeLastConnection)) {
-            telegramBot.sendToAll("Error: currentDateTime is before dateLastConnect!");
+            telegramBot.sendToAll("Error: timeLastConnection is after currentDateTime !\n" +
+                    "timeLastConnection = " + timeLastConnection.format(dateTimeFormatterMilliSeconds) + "\n" +
+                    "currentDateTime = " + currentDateTime.format(dateTimeFormatterMilliSeconds));
 
             return;
         }

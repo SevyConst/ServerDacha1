@@ -174,7 +174,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         } else {
             sendToTelegram( "Ошибка! " +  numberAdminAdded + " админов добавлено", chatId);
         }
-
     }
 
     private void updateRegularUserToAdmin(Long chatId) {
