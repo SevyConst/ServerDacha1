@@ -76,7 +76,8 @@ public class EventsService {
         }
         if (!message.isEmpty()) {
             message.append(MESSAGE_RECONNECTED);
-            telegramBot.sendToAll(message.toString());
+            telegramBot.sendToAll(message.toString(),
+                    false);
         }
 
         response.setEventsIdsDelivered(eventsIdsDelivered);

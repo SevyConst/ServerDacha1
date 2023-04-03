@@ -36,11 +36,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    public void sendToAll(String message) {
-        for(Long chatId : db.getAllUsers()) {
+    public void sendToAll(String message, boolean onlyAdmins) {
+        for(Long chatId : db.getChatIds(onlyAdmins)) {
             sendToTelegram(message, chatId);
         }
     }
+
 
     public void sendToTelegram(String message, Long chatId) {
         SendMessage outputMessage = new SendMessage();

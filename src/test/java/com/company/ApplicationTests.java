@@ -52,7 +52,7 @@ public class ApplicationTests {
     @Test
     public void onlyStartTest() throws Exception {
 
-        doNothing().when(telegramBotMock).sendToAll(isA(String.class));
+        doNothing().when(telegramBotMock).sendToAll(isA(String.class), false);
 
         eventsService.applicationProperties.setPeriodPing(PERIOD_PING);
 
@@ -77,14 +77,14 @@ public class ApplicationTests {
 
 
         ArgumentCaptor<String> capturedString = ArgumentCaptor.forClass(String.class);
-        verify(telegramBotMock).sendToAll(capturedString.capture());
+        verify(telegramBotMock).sendToAll(capturedString.capture(), false);
         assertThat(capturedString.getValue()).isEqualTo(EventsService.MESSAGE_FIRST
                 + "2023-03-21 12:50:18;\n" + EventsService.MESSAGE_RECONNECTED);
     }
 
     @Test
     public void PiIsOff2TimesTest() throws Exception {
-        doNothing().when(telegramBotMock).sendToAll(isA(String.class));
+        doNothing().when(telegramBotMock).sendToAll(isA(String.class), false);
 
         eventsService.applicationProperties.setPeriodPing(PERIOD_PING);
 
@@ -161,7 +161,7 @@ public class ApplicationTests {
 
 
         ArgumentCaptor<String> capturedString = ArgumentCaptor.forClass(String.class);
-        verify(telegramBotMock).sendToAll(capturedString.capture());
+        verify(telegramBotMock).sendToAll(capturedString.capture(), false);
         assertThat(capturedString.getValue()).isEqualTo(EventsService.MESSAGE_FIRST
                 + "2023-03-27 13:32:59;\n"
 
@@ -180,7 +180,7 @@ public class ApplicationTests {
 
     @Test
     public void offlineTest() throws Exception{
-        doNothing().when(telegramBotMock).sendToAll(isA(String.class));
+        doNothing().when(telegramBotMock).sendToAll(isA(String.class), false);
 
         checkingLastDate.setPeriodPing(PERIOD_PING);
         checkingLastDate.setCoefficientNotification(COEFFICIENT_NOTIFICATION);
@@ -231,7 +231,7 @@ public class ApplicationTests {
                         + PERIOD_PING +"}"));
 
         ArgumentCaptor<String> capturedString = ArgumentCaptor.forClass(String.class);
-        verify(telegramBotMock, times(3)).sendToAll(capturedString.capture());
+        verify(telegramBotMock, times(3)).sendToAll(capturedString.capture(), false);
         assertThat(capturedString.getAllValues().get(0)).isEqualTo(EventsService.MESSAGE_FIRST
                 + "2023-03-21 12:50:18;\n" + EventsService.MESSAGE_RECONNECTED);
         assertThat(capturedString.getAllValues().get(1)).isEqualTo(CheckingLastDate.MESSAGE_OFFLINE);

@@ -43,13 +43,16 @@ public class Db {
     }
 
     private static final String SQL_GET_ALL_USERS = "SELECT id FROM chat_ids";
-    List<Long> getAllUsers() {
+    private static final String SQL_GET_ADMINS = "SELECT id FROM chat_ids WHERE is_admin = true";
+
+    List<Long> getChatIds(boolean onlyAdmins) {
 
         List<Long> chatIds = new ArrayList<>();
+        String sqlQuery = onlyAdmins ? SQL_GET_ADMINS : SQL_GET_ALL_USERS;
 
         try (Connection connection = DriverManager.getConnection(url);
              Statement statement = connection.createStatement();
-             ResultSet set = statement.executeQuery(SQL_GET_ALL_USERS)) {
+             ResultSet set = statement.executeQuery(sqlQuery)) {
 
             while (set.next()) {
                 chatIds.add(set.getLong("id"));
