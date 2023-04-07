@@ -57,6 +57,10 @@ public class CheckingLastDate implements Runnable {
         this.periodPing = periodPing;
     }
 
+    public Integer getPeriodPing() {
+        return periodPing;
+    }
+
     public void setCoefficientNotification(Integer coefficientNotification) {
         this.coefficientNotification = coefficientNotification;
     }

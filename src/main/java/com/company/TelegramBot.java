@@ -2,6 +2,8 @@ package com.company;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -13,9 +15,15 @@ import java.util.Optional;
 
 public class TelegramBot extends TelegramLongPollingBot {
 
+    @Lazy
+    @Autowired
+    CheckingLastDate checkingLastDate;
+
     static Logger logger = LogManager.getLogger(TelegramBot.class.getName());
 
-    private static final String DELETE_ME = "deleteMe";
+    private static final String INPUT_DELETE_ME = "deleteMe";
+    private static final String INPUT_SET_PING_REGEX = "ping\\s*=\\s*\\d{1,2}";
+    private static final String INPUT_SET_PING_REMOVE_PART_REGEX = "ping\\s*=\\s*";
 
     private final String codeWord;
     private final String adminCodeWord;
@@ -76,8 +84,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                 processCodeWord(chatId);
             } else if (adminCodeWord.equals(inputMessage)) {
                 processAdminCodeWord(chatId);
-            } else if (DELETE_ME.equals(inputMessage)) {
+            } else if (INPUT_DELETE_ME.equals(inputMessage)) {
                 processDeleteMe(chatId);
+            } else if (inputMessage.matches(INPUT_SET_PING_REGEX)) {
+                processPing(inputMessage, chatId);
+
+
             }
         }
     }
@@ -214,6 +226,22 @@ public class TelegramBot extends TelegramLongPollingBot {
         } else {
             sendToTelegram("Ошибка! Количество удалённых пользователей/админов: " + numberDeletedUsers, chatId);
         }
+    }
+
+    private void processPing(String inputMessage, Long chatId) {
+        String periodPingStr = inputMessage.replaceFirst(INPUT_SET_PING_REMOVE_PART_REGEX, "");
+
+        int periodPing;
+        try {
+            periodPing = Integer.parseInt(periodPingStr);
+        } catch (NumberFormatException e) {
+            sendToTelegram("incorrect format of number - seconds period ping", chatId);
+            return;
+        }
+
+        checkingLastDate.setPeriodPing(periodPing);
+
+        sendToTelegram("Period ping has been set: " + checkingLastDate.getPeriodPing(), chatId);
     }
 
     @Override

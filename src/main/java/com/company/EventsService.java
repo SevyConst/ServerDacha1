@@ -81,7 +81,7 @@ public class EventsService {
         }
 
         response.setEventsIdsDelivered(eventsIdsDelivered);
-        response.setPeriodSent(applicationProperties.getPeriodPing());
+        response.setPeriodSent(checkingLastDate.getPeriodPing());
         return response;
     }
 
