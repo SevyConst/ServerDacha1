@@ -50,7 +50,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-
     public void sendToTelegram(String message, Long chatId) {
         SendMessage outputMessage = new SendMessage();
         outputMessage.setChatId(chatId.toString());
